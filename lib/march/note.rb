@@ -23,12 +23,12 @@ module March
       self.value / 12 - 1
     end
 
-    def octave_up
-      self.class.new(self.value + 12)
+    def octave_up(octaves = 1)
+      self.class.new(self.value + 12 * octaves)
     end
 
-    def octave_down
-      self.class.new(self.value - 12)
+    def octave_down(octaves = 1)
+      self.class.new(self.value - 12 * octaves)
     end
 
     def value
