@@ -8,7 +8,7 @@ module Mfiuegw
       attr_reader :channel_notes
 
       attr_accessor :chord
-      attr_accessor :scale
+      attr_accessor :mode
 
       def initialize(midi, i, precision)
         @midi = midi

@@ -3,21 +3,21 @@ module Mfiuegw
     attr_accessor :players
     attr_accessor :chords
     attr_accessor :chord_beat_tree
-    attr_accessor :scales
-    attr_accessor :scale_beat_tree
+    attr_accessor :modes
+    attr_accessor :mode_beat_tree
 
     def initialize
       @players = []
       @current_chord = []
-      @current_scale = []
+      @current_mode = []
     end
 
     def play(context)
+      set_current_mode(context)
       set_current_chord(context)
-      set_current_scale(context)
 
-      context.chord = @current_chord
-      context.scale = @current_scale
+      context.mode = @current_mode
+      context.chord = @current_mode.triad(@current_chord)
 
       @players.each do |player|
         player.play context
@@ -30,16 +30,16 @@ module Mfiuegw
       return unless chord_beat_tree
       chord_beat_tree.beats_at(context.f, context.precision).each do |time, beat|
         if beat.value
-          @current_chord = chords[beat.value]
+          @current_chord = beat.value
         end
       end
     end
 
-    def set_current_scale(context)
-      return unless scale_beat_tree
-      scale_beat_tree.beats_at(context.f, context.precision).each do |time, beat|
+    def set_current_mode(context)
+      return unless mode_beat_tree
+      mode_beat_tree.beats_at(context.f, context.precision).each do |time, beat|
         if beat.value
-          @current_scale = scales[beat.value]
+          @current_mode = modes[beat.value]
         end
       end
     end
