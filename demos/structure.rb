@@ -1,6 +1,10 @@
-#!/usr/bin/env ruby -rubygems -rlib/march
+#!/usr/bin/env ruby
 
-require File.join(File.dirname(__FILE__), 'beat_tree')
+require 'beat_tree'
+
+require 'rubygems'
+require 'midiator'
+require 'march'
 
 class Drummer
   DRUM_NUMBERS = {
@@ -178,7 +182,7 @@ class Structure
   def chord_at(t)
     octave = 4
     chord_root = @mode.at((Math::sin(t * Math::PI / 4) * 8).round)
-    @mode.triad_for_note(chord_root.octave_up.octave_up.octave_up.octave_up)
+    @mode.triad_for_note(chord_root(octave))
   end
 end
 

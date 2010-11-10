@@ -1,6 +1,7 @@
-#!/usr/bin/env ruby -rubygems -rlib/march
+#!/usr/bin/env ruby
 
-$LOAD_PATH.unshift(File.expand_path(File.dirname(__FILE__)))
+require 'march'
+require 'midiator'
 
 require 'mfiuegw/bass_player'
 require 'mfiuegw/chord_player'

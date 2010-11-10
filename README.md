@@ -2,21 +2,23 @@
 
 This thing implements some music theory.
 
+Install by typing `rake install`.
+
 # Demos
 
 ## Setup (OS X)
 
-* Open Audio MIDI Setup, click the IAC Driver and make sure the device is on and that it has a port.
+* Open `Audio MIDI Setup`, click the `IAC Driver` and make sure the device is on and that it has a port.
 * Get [Propellerheads Reason 5](http://www.propellerheads.se/products/reason/). The demo version should work.
-* In Reason, go to Preferences -> Advanced -> External Control and choose IAC Driver Bus 1 for Bus A.
+* In Reason, go to `Preferences -> Advanced -> External Control` and choose `IAC Driver Bus 1` for `Bus A`.
 
 ## Running
 
-Open up demos/mfiuegw.rns and start the demo by typing:
+Enter `demos/` and open `mfiuegw.rns` with Reason, and start the demo by typing:
 
-    ruby demos/mfiuegw.rb
+    ruby mfiuegw.rb
 
-If you have set up everything correctly, you'll hear music.
+If you have everything set up correctly, you'll hear sounds.
 
 # TODO
 

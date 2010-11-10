@@ -1,4 +1,9 @@
-#!/usr/bin/env ruby -rubygems -rlib/march -Idemos
+#!/usr/bin/env
+
+require 'rubygems'
+require 'march'
+require 'midiator'
+
 class Melodizer
   def initialize(mode, octave, melody)
     @mode = mode

@@ -1,6 +1,8 @@
-#!/usr/bin/env ruby -rubygems -rlib/march -Idemos
+#!/usr/bin/env ruby
 
-require File.join(File.dirname(__FILE__), 'beat_tree')
+require 'rubygems'
+require 'march'
+require 'midilib/sequence'
 
 require 'mfiuegw/bass_player'
 require 'mfiuegw/chord_player'
@@ -10,8 +12,7 @@ require 'mfiuegw/tune'
 
 include Mfiuegw
 
-require 'rubygems'
-require 'midilib/sequence'
+require 'beat_tree'
 
 class MIDI::Sequence
   def track_by_name(name)

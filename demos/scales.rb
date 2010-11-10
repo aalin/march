@@ -1,4 +1,8 @@
-#!/usr/bin/env ruby -rubygems -rlib/march
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'march'
+require 'midiator'
 
 class Drums
   def initialize(midi)
@@ -76,7 +80,7 @@ class MusicThing
   def chord_at(i)
     octave = 4
     chord_root = @mode.at((Math::sin(i * Math::PI / 4) * 4).round)
-    @mode.triad_for_note(chord_root.octave_up.octave_up.octave_up.octave_up)
+    @mode.triad_for_note(chord_root.octave_up(octave))
   end
 
   def randomize_mode!
