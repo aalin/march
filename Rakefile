@@ -1,6 +1,8 @@
 require 'rubygems'
 require 'spec'
 require 'spec/rake/spectask'
+require 'bundler'
+Bundler::GemHelper.install_tasks
 
 namespace :spec do
 	desc 'Run specs'
