@@ -19,7 +19,7 @@ class Font
     'L' => [[1,0,0],[1,0,0],[1,0,0],[1,0,0],[1,1,1]],
     'M' => [[1,0,0,0,1],[1,1,0,1,1],[1,0,1,0,1],[1,0,0,0,1],[1,0,0,0,1]],
     'N' => [[1,0,0,1],[1,1,0,1],[1,0,1,1],[1,0,0,1],[1,0,0,1]],
-    'O' => [[0,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[0,1,1,1,1,0]],
+    'O' => [[0,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[0,1,1,1,0]],
     'P' => [[1,1,1,0],[1,0,0,1],[1,1,1,0],[1,0,0,0],[1,0,0,0]],
     'Q' => [[0,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,1,1],[0,1,1,1,1]],
     'R' => [[1,1,1,0],[1,0,0,1],[1,1,1,0],[1,0,0,1],[1,0,0,1]],
@@ -45,17 +45,21 @@ class Font
     ' ' => [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
   }
 
-  def draw(text)
+  def initialize(text)
+    @text = text
+  end
+
+  def draw
     left = 0
-    characters_from_text(text).each do |char|
+    characters.each do |char|
       char.each_with_index do |row, y|
         row.each_with_index do |value, x|
           if value == 1
             glBegin(GL_TRIANGLE_STRIP)
-            glVertex(left + x, y)
-            glVertex(left + x, y + 1)
-            glVertex(left + x + 1, y)
-            glVertex(left + x + 1, y + 1)
+              glVertex(left + x, y)
+              glVertex(left + x, y + 1)
+              glVertex(left + x + 1, y)
+              glVertex(left + x + 1, y + 1)
             glEnd
           end
         end
@@ -64,49 +68,181 @@ class Font
     end
   end
 
-  def width(text)
-    characters_from_text(text).map { |char| character_width(char) }.inject(0) { |sum, i| sum + i }
+  def width
+    characters.map { |char| character_width(char) }.inject(0) { |sum, i| sum + i }
+  end
+
+  def height
+    characters.map { |char| character_height(char) }.map(&:size).max
   end
 
   private
 
-  def characters_from_text(text)
-    text.split('').map { |char| CHARACTERS[char] }
+  def characters
+    @characters ||= @text.split('').map { |char| CHARACTERS[char] }.compact
   end
 
   def character_width(character)
     character.first.size + 1
   end
+
+  def character_height(character)
+    character.size + 1
+  end
+end
+
+class Table
+  attr_accessor :rows
+
+  def initialize
+    @rows = []
+  end
+
+  def update
+  end
+
+  def draw
+    glPushMatrix
+
+    draw_grid
+
+    @rows.each_with_index do |cells, row_i|
+        row_height = row_heights[row_i]
+
+        glTranslate(0.0, border + cell_padding, 0.0)
+
+        glPushMatrix
+          cells.each_with_index do |cell, cell_i|
+            glTranslate(border + cell_padding, 0, 0)
+
+            cell.draw
+            cell_width = column_widths[cell_i]
+            glTranslate(cell_width, 0.0, 0.0)
+
+            glTranslate(cell_padding, 0.0, 0.0)
+          end
+        glPopMatrix
+
+        glTranslate(0.0, cell_padding, 0.0)
+        glTranslate(0, row_height, 0.0)
+    end
+    glPopMatrix
+  end
+
+  def cell_padding
+    5
+  end
+
+  def border
+    1
+  end
+
+  def width
+    column_widths.inject(0) { |sum, (col,w)| sum + w + cell_padding * 2 + border }
+  end
+
+  def height
+    row_heights.inject(0) { |sum, (row, h)| sum + h + cell_padding * 2 + border }
+  end
+
+  private
+
+  def draw_grid
+    draw_box(0.0, 0.0, border, height)
+    draw_box(0.0, 0.0, width, border)
+    draw_box(width, 0.0, border, height)
+    draw_box(0.0, height, width, border)
+
+    column_widths.sort_by(&:first).map(&:last).inject(0) do |x, w|
+      draw_box(x, 0.0, border, height)
+      x + w + cell_padding * 2 + border
+    end
+
+    row_heights.sort_by(&:first).map(&:last).inject(0) do |y, h|
+      draw_box(0.0, y, width, border)
+      y + h + cell_padding * 2 + border
+    end
+  end
+
+  def column_widths
+    update_dimensions unless @column_widths
+    @column_widths
+  end
+
+  def row_heights
+    update_dimensions unless @row_heights
+    @row_heights
+  end
+
+  def update_dimensions
+    @column_widths = {}
+    @row_heights = {}
+    @rows.each_with_index do |cells, row_i|
+      cells.each_with_index do |cell, cell_i|
+        @row_heights[row_i] ||= 0
+        @row_heights[row_i] += cell.height
+
+        @column_widths[cell_i] ||= 0
+        @column_widths[cell_i] += cell.width
+      end
+    end
+  end
+
+  def draw_box(x, y, width, height)
+    glBegin(GL_QUADS)
+    glVertex(x, y)
+    glVertex(x + width, y)
+    glVertex(x + width, y + height)
+    glVertex(x, y + height)
+    glEnd()
+  end
 end
 
 class Pattern
   class Channel
-    def initialize(number)
+    ROWS = 64
+    attr_accessor :name
+
+    def initialize(name, number)
+      @name = name
       @number = number
-      @notes = { }
+      @notes = Array.new(ROWS)
+    end
+
+    def width
+      100
     end
 
     def draw
-      glColor(1.0, 1.0, 1.0, 1.0)
-      Font.new.draw('I WISH I WAS A LITTLE BIT TALLER')#BCDEFG#b1234567890')
     end
   end
 
   def initialize
     @channels = [
-      Channel.new(0)
+      Channel.new("DRUMS", 0),
+      Channel.new("PIANO", 1),
     ]
   end
 
   def draw
     glPushMatrix
-      @channels.each do |channel|
-        channel.draw
-      end
+
+      Table.new.tap { |table|
+        table.rows << @channels.map do |channel|
+          Font.new(channel.name)
+        end
+        table.rows << 3.times.map { |i| Font.new((i.next * 1234567).to_s(36).upcase) }
+      }.draw
+
+      height = Channel::ROWS * 8
+
     glPopMatrix
   end
 
-  def update(s)
+  private
+
+  def channel_width
+    @channels.inject(0) { |total_width, channel| total_width + channel.width }
   end
 end
 
@@ -119,6 +255,7 @@ class Editor
   end
 
   def draw
+    glColor(1.0, 1.0, 1.0, 1.0)
     @pattern.draw
   end
 end
@@ -172,8 +309,8 @@ class EditorWindow
   end
 
   def mouse_dragging_motion(x, y)
-    @x += ((@mouse_position.x || x) - x) / 5.0
-    @y += ((@mouse_position.y || y) - y) / 5.0
+    @x += ((@mouse_position.x || x) - x) / 2.0
+    @y += ((@mouse_position.y || y) - y) / 2.0
   end
 
   def mouse_motion(x, y)
