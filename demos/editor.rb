@@ -179,11 +179,13 @@ class Table
     @row_heights = {}
     @rows.each_with_index do |cells, row_i|
       cells.each_with_index do |cell, cell_i|
-        @row_heights[row_i] ||= 0
-        @row_heights[row_i] += cell.height
+        if cell.height > @row_heights[row_i].to_i
+          @row_heights[row_i] = cell.height
+        end
 
-        @column_widths[cell_i] ||= 0
-        @column_widths[cell_i] += cell.width
+        if cell.width > @column_widths[cell_i].to_i
+          @column_widths[cell_i] = cell.width
+        end
       end
     end
   end
@@ -200,17 +202,19 @@ end
 
 class Pattern
   class Channel
+    class Row
+    end
+
     ROWS = 64
     attr_accessor :name
 
     def initialize(name, number)
       @name = name
       @number = number
-      @notes = Array.new(ROWS)
+      @rows = Array.new(ROWS) { |row| }
     end
 
     def width
-      100
     end
 
     def draw
@@ -232,6 +236,10 @@ class Pattern
           Font.new(channel.name)
         end
         table.rows << 3.times.map { |i| Font.new((i.next * 1234567).to_s(36).upcase) }
+        table.rows << 3.times.map { |i| Font.new((i.next * 234567).to_s(36).upcase) }
+        table.rows << 3.times.map { |i| Font.new((i.next * 643234).to_s(36).upcase) }
+        table.rows << 3.times.map { |i| Font.new((i.next * 2323).to_s(36).upcase) }
+        table.rows << 4.times.map { |i| Font.new("A") }
       }.draw
 
       height = Channel::ROWS * 8
