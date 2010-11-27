@@ -19,6 +19,13 @@ describe March::Mode do
       @mode.at(1).should == March::Note.from_name("D")
     end
 
+    it 'should tell whether a note is in the mode or not' do
+      @mode.include?(March::Note.from_name('C')).should == true
+      @mode.include?(March::Note.from_name('Db')).should == false
+      @mode.include?(March::Note.from_name('G')).should == true
+      @mode.include?(March::Note.from_name('Ab')).should == false
+    end
+
     it 'should give a higher value if I send a higher degree' do
       @mode.at(7 + 0).value.should == March::Note.from_name("C").value + 12
       @mode.at(7 + 1).value.should == March::Note.from_name("D").value + 12

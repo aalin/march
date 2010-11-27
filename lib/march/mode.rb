@@ -16,6 +16,10 @@ module March
       March::Note.new(self.scale.closest_note_value(note_value - self.root.value) + self.root.value)
     end
 
+    def include?(note)
+      notes.any? { |n| n.value == note.value % 12 }
+    end
+
     def triad(degree)
       triad_for_note(at(degree))
     end
