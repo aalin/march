@@ -14,11 +14,22 @@ Install by typing `rake install`.
 
 ## Running
 
+### Mfiuegw
+
+Mfiuegw plays music according to some rules defined in mfiuegw.rb.
+
 Enter `demos/` and open `mfiuegw.rns` with Reason, and start the demo by typing:
 
     ruby mfiuegw.rb
 
 If you have everything set up correctly, you'll hear sounds.
+
+### MIDI input
+
+`midi\_input.rb` uses your MIDI-keyboard and processes the notes in some way.
+
+Before you try it, you'll need to compile a small helper program which you can find in `demos/midi_input/`.
+Just run `make` and hope for the best.
 
 # TODO
 
