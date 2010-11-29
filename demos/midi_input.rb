@@ -68,9 +68,29 @@ class MidiNoteTrigger
   end
 end
 
-def play_closest_note(midi_note_triggerer, event, mode)
-  return unless event[0] == 144
+def play_as_if_c_major(midi_note_triggerer, event, mode)
 
+  octave, note_value = event[1].divmod(12)
+
+  if note_index = March::Scale.major.values.index(note_value)
+    note = mode.at(note_index).octave_up(octave)
+
+    velocity = event[2]
+
+    if velocity.zero?
+      puts "\e[31m%s\e[0m" % note.to_s
+      midi_note_triggerer.note_off(note.value)
+    else
+      puts "\e[32m%s\e[0m" % note.to_s
+      midi_note_triggerer.note_on(note.value, velocity)
+    end
+
+  else
+    puts "Note not in C major: #{ March::Note.new(event[1]) }"
+  end
+end
+
+def play_closest_note(midi_note_triggerer, event, mode)
   given_note = March::Note.new(event[1])
   note = mode.closest_note(given_note.value)
 
@@ -90,8 +110,6 @@ def play_closest_note(midi_note_triggerer, event, mode)
 end
 
 def play_if_in_mode(midi_note_triggerer, event, mode)
-  return unless event[0] == 144
-
   note = March::Note.new(event[1])
   velocity = event[2]
 
@@ -109,8 +127,6 @@ def play_if_in_mode(midi_note_triggerer, event, mode)
 end
 
 def play_chord(midi_note_triggerer, event, mode)
-  return unless event[0] == 144
-
   chord_root = March::Note.new(event[1])
   velocity = event[2]
 
@@ -125,12 +141,16 @@ def play_chord(midi_note_triggerer, event, mode)
   end
 end
 
-mode = March::Mode.new(March::Note.from_name('C'), March::Scale.major)
+mode = March::Mode.new(March::Note.from_name('A'), March::Scale.harmonic_minor)
 
 midi_note_triggerer = MidiNoteTrigger.new(0)
 
 MidiInput.new.run do |event|
-  play_closest_note(midi_note_triggerer, event, mode) # Useful for not playing the "wrong" notes
+  puts event.map.map { |i| format("%02x", i) }.join(" ")
+  next unless event.first == 0x90 # Channel 1 note on
+
+  play_as_if_c_major(midi_note_triggerer, event, mode) # Useful for playing any scale as C major
+  # play_closest_note(midi_note_triggerer, event, mode) # Useful for not playing the "wrong" notes
   # play_if_in_mode(midi_note_triggerer, event, mode) # Useful for practicing scales
   # play_chord(midi_note_triggerer, event, mode)
 end
