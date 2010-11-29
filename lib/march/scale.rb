@@ -3,6 +3,10 @@ module March
     def self.major ; ionian ; end
     def self.natural_minor ; aeolian ; end
 
+    def self.harmonic_minor
+      aeolian.offseted(0, 0, 0, 0, 0, 0, 1)
+    end
+
     def self.pentatonic_blues
       from_half_steps(3, 2, 1, 1, 3, 2)
     end
@@ -36,12 +40,16 @@ module March
 
     attr_reader :values
 
+    def initialize(values)
+      @values = values
+    end
+
     def diff(scale)
       @values.zip(scale.values.sort).map { |a,b| b - a }
     end
 
-    def initialize(values)
-      @values = values
+    def offseted(*offsets)
+      self.class.new(values.zip(offsets.flatten).map { |value, offset| value + offset })
     end
 
     def at(degree)
