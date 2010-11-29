@@ -4,7 +4,7 @@ module March
     def self.natural_minor ; aeolian ; end
 
     def self.harmonic_minor
-      aeolian.offseted(0, 0, 0, 0, 0, 0, 1)
+      aeolian.with_offset(0, 0, 0, 0, 0, 0, 1)
     end
 
     def self.pentatonic_blues
@@ -48,7 +48,7 @@ module March
       @values.zip(scale.values.sort).map { |a,b| b - a }
     end
 
-    def offseted(*offsets)
+    def with_offset(*offsets)
       self.class.new(values.zip(offsets.flatten).map { |value, offset| value + offset })
     end
 
