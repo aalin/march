@@ -7,6 +7,10 @@ module March
       aeolian.with_offset(0, 0, 0, 0, 0, 0, 1)
     end
 
+    def self.phrygian_dominant
+      from_half_steps(1, 3, 1, 2, 1, 2, 2)
+    end
+
     def self.pentatonic_blues
       from_half_steps(3, 2, 1, 1, 3, 2)
     end
