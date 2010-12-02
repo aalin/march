@@ -4,7 +4,20 @@ require 'midiator'
 require 'open3'
 
 class MidiInput
-  def run
+  def initialize
+    @events = []
+    @events_mutex = Mutex.new
+  end
+
+  def get_events!
+    @events_mutex.synchronize do
+      @events.dup.tap do
+        @events.clear
+      end
+    end
+  end
+
+  def run!
     executable = File.join(File.dirname(__FILE__), 'midi_input', 'midi_input')
 
     unless File.exists?(executable)
@@ -15,10 +28,12 @@ class MidiInput
       raise "#{ executable } exists, but has the wrong permissions. Try: chmod +x #{ executable }"
     end
 
-    Open3.popen3(executable) do |stdin, stdout, stderr|
-      pick_midi_source(stdin, stdout)
-      loop do
-        yield stdout.gets.split.map { |s| s.to_i }
+    Thread.new do
+      Open3.popen3(executable) do |stdin, stdout, stderr|
+        pick_midi_source(stdin, stdout)
+        loop do
+          add_event(stdout.gets.split.map { |s| s.to_i })
+        end
       end
     end
   end
@@ -39,6 +54,12 @@ class MidiInput
       else
         puts line
       end
+    end
+  end
+
+  def add_event(event)
+    @events_mutex.synchronize do
+      @events << event
     end
   end
 end
@@ -145,12 +166,17 @@ mode = March::Mode.new(March::Note.from_name('A'), March::Scale.harmonic_minor)
 
 midi_note_triggerer = MidiNoteTrigger.new(0)
 
-MidiInput.new.run do |event|
-  puts event.map.map { |i| format("%02x", i) }.join(" ")
-  next unless event.first == 0x90 # Channel 1 note on
+midi_input = MidiInput.new
+midi_input.run!
 
-  play_as_if_c_major(midi_note_triggerer, event, mode) # Useful for playing any scale as C major
-  # play_closest_note(midi_note_triggerer, event, mode) # Useful for not playing the "wrong" notes
-  # play_if_in_mode(midi_note_triggerer, event, mode) # Useful for practicing scales
-  # play_chord(midi_note_triggerer, event, mode)
+loop do
+  midi_input.get_events!.each do |event|
+    puts event.map.map { |i| format("%02x", i) }.join(" ")
+    next unless event.first == 0x90 # Channel 1 note on
+
+    play_as_if_c_major(midi_note_triggerer, event, mode) # Useful for playing any scale as C major
+    # play_closest_note(midi_note_triggerer, event, mode) # Useful for not playing the "wrong" notes
+    # play_if_in_mode(midi_note_triggerer, event, mode) # Useful for practicing scales
+    # play_chord(midi_note_triggerer, event, mode)
+  end
 end
