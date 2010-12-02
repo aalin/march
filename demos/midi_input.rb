@@ -11,6 +11,7 @@ class MidiInput
 
   def get_events!
     @events_mutex.synchronize do
+      return if @events.empty?
       @events.dup.tap do
         @events.clear
       end
@@ -64,119 +65,73 @@ class MidiInput
   end
 end
 
-class MidiNoteTrigger
-  def initialize(channel)
-    @channel = channel
+if __FILE__ == $0
+  class MidiInterface
+    def initialize(channel)
+      @channel = channel
 
-    @midi = MIDIator::Interface.new
-    @midi.autodetect_driver
+      @midi = MIDIator::Interface.new
+      @midi.autodetect_driver
 
-    @notes = Hash.new { |hash, key| hash[key] = 0 }
-  end
-
-  def note_on(note, velocity)
-    if @notes[note] == 0
-      @midi.driver.note_on(note, @channel, velocity)
-    end
-    @notes[note] += 1
-  end
-
-  def note_off(note)
-    @notes[note] -= 1
-    if @notes[note] == 0
-      @midi.driver.note_off(note, @channel)
-    end
-  end
-end
-
-def play_as_if_c_major(midi_note_triggerer, event, mode)
-
-  octave, note_value = event[1].divmod(12)
-
-  if note_index = March::Scale.major.values.index(note_value)
-    note = mode.at(note_index).octave_up(octave)
-
-    velocity = event[2]
-
-    if velocity.zero?
-      puts "\e[31m%s\e[0m" % note.to_s
-      midi_note_triggerer.note_off(note.value)
-    else
-      puts "\e[32m%s\e[0m" % note.to_s
-      midi_note_triggerer.note_on(note.value, velocity)
+      @notes = Hash.new { |hash, key| hash[key] = 0 }
     end
 
-  else
-    puts "Note not in C major: #{ March::Note.new(event[1]) }"
-  end
-end
-
-def play_closest_note(midi_note_triggerer, event, mode)
-  given_note = March::Note.new(event[1])
-  note = mode.closest_note(given_note.value)
-
-  velocity = event[2]
-
-  if note.value != given_note.value
-    puts "\e[33m#{ given_note } -> #{ note }\e[0m"
-  end
-
-  if velocity.zero?
-    puts "\e[31m%s\e[0m" % note.to_s
-    midi_note_triggerer.note_off(note.value)
-  else
-    puts "\e[32m%s\e[0m" % note.to_s
-    midi_note_triggerer.note_on(note.value, velocity)
-  end
-end
-
-def play_if_in_mode(midi_note_triggerer, event, mode)
-  note = March::Note.new(event[1])
-  velocity = event[2]
-
-  if mode.include?(note)
-    if velocity.zero?
-      puts "\e[31m%s\e[0m" % note.to_s
-      midi_note_triggerer.note_off(note.value)
-    else
-      puts "\e[32m%s\e[0m" % note.to_s
-      midi_note_triggerer.note_on(note.value, velocity)
+    def trigger(events)
+      events.each do |event|
+        trigger_event(event)
+      end
     end
-  else
-    puts "\e[33m%s\e[0m" % note.to_s
+
+    private
+
+    def trigger_event(event)
+      return unless event[0] == 0x90 # Channel 1 note on
+
+      if event[2].zero?
+        note_off(event[1])
+      else
+        note_on(event[1], event[2])
+      end
+    end
+
+    def note_on(note, velocity)
+      puts "\e[32m#{ March::Note.new(note) }\e[0m"
+      if @notes[note].zero?
+        @midi.driver.note_on(note, @channel, velocity)
+      end
+      @notes[note] += 1
+    end
+
+    def note_off(note)
+      @notes[note] -= 1
+      if @notes[note].zero?
+        puts "\e[31m#{ March::Note.new(note) }\e[0m"
+        @midi.driver.note_off(note, @channel)
+      end
+    end
   end
-end
 
-def play_chord(midi_note_triggerer, event, mode)
-  chord_root = March::Note.new(event[1])
-  velocity = event[2]
+  require 'event_filters'
 
-  notes = mode.triad_for_note(chord_root)
+  mode = March::Mode.new(March::Note.from_name('D'), March::Scale.phrygian_dominant)
 
-  puts "\e[%dm%s\e[0m" % [velocity.zero? ? 31 : 32, notes.join(", ")]
+  midi_interface = MidiInterface.new(0)
+  midi_input = MidiInput.new
+  midi_input.run!
 
-  if velocity.zero?
-    notes.each { |note| midi_note_triggerer.note_off(note.value) }
-  else
-    notes.each { |note| midi_note_triggerer.note_on(note.value, velocity + rand(velocity / 10)) }
-  end
-end
+  filters = [
+    # EventFilters::WhiteKeyFilter.new(mode),    # Play any scale as if it was C major.
+    #EventFilters::ClosestNoteFilter.new(mode), # Useful for not playing the "wrong" notes.
+    EventFilters::OnlyInModeFilter.new(mode),  # Useful for practicing scales
+    #EventFilters::ChordmakerFilter.new(mode)   # Make triad chords.
+  ]
 
-mode = March::Mode.new(March::Note.from_name('A'), March::Scale.harmonic_minor)
+  loop do
+    if events = midi_input.get_events!
+      puts events.map { |event| event.map { |i| format("%02x", i) }.join(" ") }
 
-midi_note_triggerer = MidiNoteTrigger.new(0)
-
-midi_input = MidiInput.new
-midi_input.run!
-
-loop do
-  midi_input.get_events!.each do |event|
-    puts event.map.map { |i| format("%02x", i) }.join(" ")
-    next unless event.first == 0x90 # Channel 1 note on
-
-    play_as_if_c_major(midi_note_triggerer, event, mode) # Useful for playing any scale as C major
-    # play_closest_note(midi_note_triggerer, event, mode) # Useful for not playing the "wrong" notes
-    # play_if_in_mode(midi_note_triggerer, event, mode) # Useful for practicing scales
-    # play_chord(midi_note_triggerer, event, mode)
+      events = filters.inject(events) { |e, filter| filter.filter(e) }
+      midi_interface.trigger(events)
+    end
   end
 end
