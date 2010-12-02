@@ -43,7 +43,7 @@ module March
     end
 
     def fifth(note)
-      note_half_steps_from_note(note, [7, 6])
+      note_half_steps_from_note(note, [7, 6, 8])
     end
 
     # Tries to get the first note that matches any of half_steps away from the note at degree.
@@ -54,6 +54,7 @@ module March
           return March::Note.new(value)
         end
       end
+      nil
     end
   end
 end

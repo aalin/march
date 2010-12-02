@@ -7,7 +7,7 @@ describe March::Mode do
   end
 
   context 'with a mode' do
-    before :each do
+    before do
       @mode = March::Mode.new(March::Note.from_name("C"), March::Scale.major)
     end
 
@@ -55,7 +55,7 @@ describe March::Mode do
     # augmented triads contain a major third, and augmented fifth, symbolized: R 3 ♯5 (or 0-4-8) About this sound play (help·info)
 
     context 'with C major' do
-      before :each do
+      before do
         @mode = March::Mode.new(March::Note.from_name("C"), March::Scale.major)
       end
 
@@ -76,7 +76,7 @@ describe March::Mode do
     end
 
     context 'with D dorian' do
-      before :each do
+      before do
         @mode = March::Mode.new(March::Note.from_name("D"), March::Scale.dorian)
         @mode.notes.map(&:name).should == %w(D E F G A B C)
       end
@@ -94,6 +94,16 @@ describe March::Mode do
         it "should give #{ note_names.join(", ") } at degree #{ degree }" do
           @mode.triad(degree).map(&:name).should == note_names
         end
+      end
+    end
+
+    context 'with C phrygian dominant' do
+      before do
+        @mode = March::Mode.new(March::Note.from_name("C"), March::Scale.phrygian_dominant)
+      end
+
+      it 'should give G#aug for the fifth degree' do
+        @mode.triad(5).map(&:name).should == %w(G# C E)
       end
     end
   end
