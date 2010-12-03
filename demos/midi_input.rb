@@ -11,7 +11,6 @@ class MidiInput
 
   def get_events!
     @events_mutex.synchronize do
-      return if @events.empty?
       @events.dup.tap do
         @events.clear
       end
@@ -113,25 +112,24 @@ if __FILE__ == $0
 
   require 'event_filters'
 
-  mode = March::Mode.new(March::Note.from_name('D'), March::Scale.phrygian_dominant)
+  mode = March::Mode.new(March::Note.from_name('C'), March::Scale.phrygian_dominant)
 
   midi_interface = MidiInterface.new(0)
   midi_input = MidiInput.new
   midi_input.run!
 
   filters = [
-    # EventFilters::WhiteKeyFilter.new(mode),    # Play any scale as if it was C major.
-    #EventFilters::ClosestNoteFilter.new(mode), # Useful for not playing the "wrong" notes.
-    EventFilters::OnlyInModeFilter.new(mode),  # Useful for practicing scales
-    #EventFilters::ChordmakerFilter.new(mode)   # Make triad chords.
+    EventFilters::WhiteKeyFilter.new(mode),    # Play any scale as if it was C major.
+    # EventFilters::ClosestNoteFilter.new(mode), # Useful for not playing the "wrong" notes.
+    # EventFilters::OnlyInModeFilter.new(mode),  # Useful for practicing scales
+    # EventFilters::ChordmakerFilter.new(mode)   # Make triad chords.
   ]
 
   loop do
-    if events = midi_input.get_events!
-      puts events.map { |event| event.map { |i| format("%02x", i) }.join(" ") }
+    events = midi_input.get_events!
+    puts events.map { |event| event.map { |i| format("%02x", i) }.join(" ") }
 
-      events = filters.inject(events) { |e, filter| filter.filter(e) }
-      midi_interface.trigger(events)
-    end
+    events = filters.inject(events) { |e, filter| filter.filter(e) }
+    midi_interface.trigger(events)
   end
 end
