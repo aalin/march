@@ -25,6 +25,44 @@ module EventFilters
     end
   end
 
+  class ArpeggioFilter < BasicEventFilter
+    def initialize
+      @events = {}
+      @index = 0
+      @last_change = 0
+    end
+
+    def filter(events)
+      events.each do |event|
+        filter_event(event)
+      end
+      get_events
+    end
+
+    private
+
+    def get_events
+      if Time.now.to_f - @last_change > 0.2
+        @index += 1
+        @last_change = Time.now.to_f
+        [
+          @previous_event ? update_event(@previous_event, 2, 0) : nil,
+          @previous_event = @events.empty? ? nil : @events.sort_by { |k,v| k }[@index % @events.size].last
+        ].compact
+      else
+        []
+      end
+    end
+
+    def filter_event(event)
+      if note_velocity(event).zero?
+        @events.delete(note_value(event))
+      else
+        @events[note_value(event)] = event
+      end
+    end
+  end
+
   class WhiteKeyFilter < BasicEventFilter
     def initialize(mode)
       @mode = mode

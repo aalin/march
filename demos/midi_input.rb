@@ -120,6 +120,7 @@ if __FILE__ == $0
 
   filters = [
     EventFilters::WhiteKeyFilter.new(mode),    # Play any scale as if it was C major.
+    # EventFilters::ArpeggioFilter.new,          # Arpeggio!
     # EventFilters::ClosestNoteFilter.new(mode), # Useful for not playing the "wrong" notes.
     # EventFilters::OnlyInModeFilter.new(mode),  # Useful for practicing scales
     # EventFilters::ChordmakerFilter.new(mode)   # Make triad chords.
