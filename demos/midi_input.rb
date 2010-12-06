@@ -32,7 +32,13 @@ class MidiInput
       Open3.popen3(executable) do |stdin, stdout, stderr|
         pick_midi_source(stdin, stdout)
         loop do
-          add_event(stdout.gets.split.map { |s| s.to_i })
+          line = stdout.gets
+          case line
+          when /^Using source/
+            puts line
+          else
+            add_event(line.split.map(&:to_i))
+          end
         end
       end
     end
@@ -44,12 +50,11 @@ class MidiInput
     loop do
       line = stdout.gets
       case line
-      when /^Choose source:/
-        print "Choose source: "
+      when /^Choose sources, end with EOF:/
+        print "Choose sources, separated by whitespace: "
         $stdout.flush
-        stdin.puts(gets)
-      when /^Using source (\d+)/
-        puts "Using source #$1"
+        stdin.puts(gets.scan(/\d+/))
+        stdin.close
         break
       else
         puts line

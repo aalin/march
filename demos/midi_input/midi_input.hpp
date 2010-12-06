@@ -15,7 +15,7 @@ class MidiInput
 			std::string manufacturer;
 		};
 
-		MidiInput(unsigned int);
+		MidiInput(std::vector<unsigned int> sources);
 
 		static unsigned int numberOfSources() { return MIDIGetNumberOfSources(); }
 		static const SourceInfo getSourceInfo(unsigned int source);
@@ -25,9 +25,9 @@ class MidiInput
 	private:
 		static void read(const MIDIPacketList* packet_list, void* midi_input, void* src_conn_ref_con);
 
-		static std::string sourceName(unsigned int source);
-		static std::string sourceModel(unsigned int source);
-		static std::string sourceManufacturer(unsigned int source);
+		static std::string sourceName(MIDIEndpointRef source);
+		static std::string sourceModel(MIDIEndpointRef source);
+		static std::string sourceManufacturer(MIDIEndpointRef source);
 
 		void receivePacket(const MIDIPacket* packet);
 

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iterator>
 #include "midi_input.hpp"
 
 int main()
@@ -12,16 +13,14 @@ int main()
 		          << "\tManufacturer: " << source_info.manufacturer << std::endl;
 	}
 
-	std::cout << "Choose source: " << std::endl;
-
-	unsigned int source;
-	std::cin >> source;
-
-	std::cout << "Using source " << source << std::endl;
+	std::cout << "Choose sources, end with EOF:" << std::endl;
+	std::istream_iterator<unsigned int> it(std::cin);
+	std::istream_iterator<unsigned int> end;
+	std::vector<unsigned int> sources(it, end);
 
 	try
 	{
-		MidiInput midi_input(source);
+		MidiInput midi_input(sources);
 		CFRunLoopRun();
 	}
 	catch(const char* str)

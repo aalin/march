@@ -2,7 +2,7 @@
 #include <iterator>
 #include <iostream>
 
-MidiInput::MidiInput(unsigned int source)
+MidiInput::MidiInput(std::vector<unsigned int> sources)
 {
 	if(OSStatus status = MIDIClientCreate(CFSTR("March"), 0, 0, &_midi_client))
 	{   
@@ -18,8 +18,12 @@ MidiInput::MidiInput(unsigned int source)
 		throw "Couldn't create MIDI input port.";
 	}
 
-	MIDIEndpointRef src = MIDIGetSource(source);
-	MIDIPortConnectSource(_midi_in, src, 0);
+	for(std::vector<unsigned int>::iterator it = sources.begin(); it != sources.end(); it++)
+	{
+		MIDIEndpointRef src = MIDIGetSource(*it);
+		std::cout << "Using source " << *it << " (" << sourceName(src) << ", " << sourceModel(src) << ", " << sourceManufacturer(src) << ")" << std::endl;
+		MIDIPortConnectSource(_midi_in, src, 0);
+	}
 }
 
 void MidiInput::read(const MIDIPacketList* packet_list, void* midi_input, void* src_conn_ref_con)
@@ -44,23 +48,24 @@ void MidiInput::receivePacket(const MIDIPacket* packet)
 const MidiInput::SourceInfo MidiInput::getSourceInfo(unsigned int source)
 {
 	SourceInfo source_info;
-	source_info.name = sourceName(source);
-	source_info.model = sourceModel(source);
-	source_info.manufacturer = sourceManufacturer(source);
+	MIDIEndpointRef src = MIDIGetSource(source);
+	source_info.name = sourceName(src);
+	source_info.model = sourceModel(src);
+	source_info.manufacturer = sourceManufacturer(src);
 	return source_info;
 }
 
-std::string MidiInput::sourceName(unsigned int source)
+std::string MidiInput::sourceName(MIDIEndpointRef source)
 {
-	return getPropertyAsString(MIDIGetSource(source), kMIDIPropertyName);
+	return getPropertyAsString(source, kMIDIPropertyName);
 }
 
-std::string MidiInput::sourceModel(unsigned int source)
+std::string MidiInput::sourceModel(MIDIEndpointRef source)
 {
-	return getPropertyAsString(MIDIGetSource(source), kMIDIPropertyModel);
+	return getPropertyAsString(source, kMIDIPropertyModel);
 }
 
-std::string MidiInput::sourceManufacturer(unsigned int source)
+std::string MidiInput::sourceManufacturer(MIDIEndpointRef source)
 {
-	return getPropertyAsString(MIDIGetSource(source), kMIDIPropertyManufacturer);
+	return getPropertyAsString(source, kMIDIPropertyManufacturer);
 }
