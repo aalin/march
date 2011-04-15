@@ -40,7 +40,7 @@ if $0 == __FILE__
   bass = Melodizer.new(mode, 4, [nil, 0, -1, 0] + [-1, 0, -1, 0] + [-4, 0, +2, 0] + [+1, 0, +1, +2])
 
   midi = MIDIator::Interface.new
-  midi.autodetect_driver
+  midi.use(:core_midi)
 
   loop do
     melodizer.play(midi, 0)

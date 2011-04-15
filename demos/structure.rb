@@ -122,7 +122,7 @@ class Structure
 
   def play!
     midi = MIDIator::Interface.new
-    midi.autodetect_driver
+    midi.use(:core_midi)
 
     tick_length = 0.08
     bar = 0

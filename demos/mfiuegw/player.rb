@@ -64,7 +64,7 @@ module Mfiuegw
 
     def play!
       midi = MIDIator::Interface.new
-      midi.autodetect_driver
+      midi.use(:core_midi)
 
       i = 0
       loop do

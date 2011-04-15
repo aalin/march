@@ -75,7 +75,7 @@ if __FILE__ == $0
       @channel = channel
 
       @midi = MIDIator::Interface.new
-      @midi.autodetect_driver
+      @midi.use(:core_midi)
 
       @notes = Hash.new { |hash, key| hash[key] = 0 }
     end

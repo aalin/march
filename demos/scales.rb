@@ -25,7 +25,7 @@ end
 class MusicThing
   def play
     midi = MIDIator::Interface.new
-    midi.autodetect_driver
+    midi.use(:core_midi)
 
     drums = Drums.new(midi)
 
