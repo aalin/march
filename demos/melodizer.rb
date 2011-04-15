@@ -1,4 +1,4 @@
-#!/usr/bin/env
+#!/usr/bin/env ruby
 
 require 'rubygems'
 require 'march'
