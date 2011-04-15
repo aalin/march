@@ -18,7 +18,7 @@ namespace :spec do
 
     begin
       spec.rcov = true
-      spec.rcov_opts << '--exclude' << 'spec'
+      spec.rcov_opts = ['--exclude', 'spec']
     rescue Exception => e
       puts e
     end
