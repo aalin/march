@@ -1,32 +1,29 @@
 require 'rubygems'
-require 'spec'
-require 'spec/rake/spectask'
+require 'rspec'
+require 'rspec/core/rake_task'
 require 'bundler'
 Bundler::GemHelper.install_tasks
 
 namespace :spec do
-	desc 'Run specs'
-	Spec::Rake::SpecTask.new(:run) do |t|
-		t.spec_opts << '--options' << 'spec/spec.opts' if File.exists?('spec/spec.opts')
-		t.spec_files = Dir.glob(File.join(File.dirname(__FILE__), 'spec/**/*_spec.rb'))
-	end
+  desc 'Run specs'
+  RSpec::Core::RakeTask.new(:run) do |spec|
+    spec.rspec_opts = ['--options', 'spec/spec.opts'] if File.exists?('spec/spec.opts')
+    spec.pattern = 'spec/**/*_spec.rb'
+  end
 
-	desc 'Specs with rcov'
-	Spec::Rake::SpecTask.new(:rcov) do |t|
-		t.spec_opts << '--options' << 'spec/spec.opts' if File.exists?('spec/spec.opts')
-		t.spec_files = Dir.glob(File.join(File.dirname(__FILE__), 'spec/**/*_spec.rb'))
+  desc 'Specs with rcov'
+  RSpec::Core::RakeTask.new(:rcov) do |spec|
+    spec.rspec_opts = ['--options', 'spec/spec.opts'] if File.exists?('spec/spec.opts')
+    spec.pattern = 'spec/**/*_spec.rb'
 
-		begin
-			t.rcov = ENV.has_key?('NO_RCOV') ? ENV['NO_RCOV'] != 'true' : true
-			t.rcov_opts << '--exclude' << 'spec'
-			t.rcov_opts << '--text-summary'
-			t.rcov_opts << '--sort' << 'coverage' << '--sort-reverse'
-		rescue Exception => e
-			puts e
-		end
-	end
+    begin
+      spec.rcov = true
+      spec.rcov_opts << '--exclude' << 'spec'
+    rescue Exception => e
+      puts e
+    end
+  end
 end
 
 desc 'Run specs'
 task :spec => 'spec:run'
-

@@ -1,11 +1,7 @@
 require 'rubygems'
-require 'spec'
+gem 'rspec'
 
 $LOAD_PATH.push(File.join(File.dirname(__FILE__), '../lib'))
 $LOAD_PATH.push(File.join(File.dirname(__FILE__), '../demos'))
 
 require 'march'
-
-Spec::Runner.configure do |config|
-end
-
