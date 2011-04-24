@@ -49,4 +49,22 @@ describe March::Note do
     March::Note.new(60).should < March::Note.new(61)
     March::Note.new(60).should > March::Note.new(59)
   end
+
+  it 'should make a nice string when inspecting' do
+    March::Note.new(60).inspect.should == "<March::Note C 4 (value: 60)>"
+  end
+
+  it 'should give the value when doing to_i' do
+    March::Note.new(60).to_i.should == 60
+  end
+
+  it 'should transpose an octave up' do
+    March::Note.new(60).octave_up.to_i.should == 72
+    March::Note.new(60).octave_up(2).to_i.should == 84
+  end
+
+  it 'should transpose an octave down' do
+    March::Note.new(60).octave_down.to_i.should == 48
+    March::Note.new(60).octave_down(2).to_i.should == 36
+  end
 end

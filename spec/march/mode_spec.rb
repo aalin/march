@@ -106,5 +106,15 @@ describe March::Mode do
         @mode.triad(5).map(&:name).should == %w(G# C E)
       end
     end
+
+    context 'with some strange mode' do
+      before do
+        @mode = March::Mode.new(March::Note.from_name("C"), March::Scale.from_half_steps(1, 1, 1, 1, 5))
+      end
+
+      it 'should give nil for the fifth degree' do
+        @mode.triad(5).map(&:name).should == %w(C D#)
+      end
+    end
   end
 end
