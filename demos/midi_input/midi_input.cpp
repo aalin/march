@@ -7,14 +7,18 @@ MidiInput::MidiInput(std::vector<unsigned int> sources)
 	if(OSStatus status = MIDIClientCreate(CFSTR("March"), 0, 0, &_midi_client))
 	{   
 		std::cerr << "Couldn't create MIDI client: " << status << std::endl;
+#ifdef GetMacOSStatusErrorString
 		std::cerr << GetMacOSStatusErrorString(status) << std::endl;
+#endif
 		throw "Couldn't create MIDI client.";
 	}   
 
 	if(OSStatus status = MIDIInputPortCreate(_midi_client, CFSTR("March Input"), MidiInput::read, this, &_midi_in))
 	{
 		std::cerr << "Couldn't create MIDI input port: " << status << std::endl;
+#ifdef GetMacOSStatusErrorString
 		std::cerr << GetMacOSStatusErrorString(status) << std::endl;
+#endif
 		throw "Couldn't create MIDI input port.";
 	}
 
